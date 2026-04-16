@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Connect</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="index">
+    <main class="layout">
+      <section class="hero hero--landing">
+        <div class="hero__content">
+          <span class="badge">Study Connect</span>
+          <h1>Aprendizagem acompanhada de forma simples</h1>
+          <p>
+            Um prototipo rapido para professores me enviarem atividades  sem precisar de login e de forma bem simples e didatica e eu
+            conseguir acompanhar os assuntos passados em sala de aula.
+          </p>
+        </div>
+      </section>
+
+      <section class="entry-grid">
+        <section class="section section--entry">
+          <div class="section__header">
+            <span class="badge">Aluno</span>
+            <h2>Entrar como aluno</h2>
+            <p>Escolha um perfil para abrir o painel de estudos.</p>
+          </div>
+          <div class="grid" data-student-options></div>
+        </section>
+
+        <section class="section section--entry section--teacher">
+          <div class="section__header">
+            <span class="badge">Professor</span>
+            <h2>Entrar como professor</h2>
+            <p>Crie atividades, acompanhe entregas e organize sua turma.</p>
+          </div>
+          <div class="teacher-entry">
+            <p class="teacher-entry__text">
+              Abra o painel do professor para criar tarefas e acompanhar os
+              atividades enviadas.
+            </p>
+            <button class="button" data-open-teacher>
+              Abrir painel do professor
+            </button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="js/seed.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar Atividade | Study Connect</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="teacher-create-topic">
+    <main class="layout">
+      <header class="topbar">
+        <div>
+          <span class="badge" data-form-mode-badge>Nova atividade</span>
+          <h1 data-form-mode-title>Criar atividade</h1>
+        </div>
+        <div class="topbar__actions">
+          <a class="button button--ghost" href="teacher-dashboard.html">Voltar ao painel</a>
+        </div>
+      </header>
+
+      <section class="panel">
+        <form data-topic-form>
+          <div class="form-section">
+            <h2>Informacoes principais</h2>
+            <p class="detail-meta">Defina o basico da atividade que o aluno vai receber.</p>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="title">Titulo</label>
+                <input id="title" name="title" placeholder="Ex: Revisao de Frações" required />
+              </div>
+
+              <div class="form-field">
+                <label for="subject">Materia</label>
+                <select id="subject" name="subject" data-subject-select required></select>
+              </div>
+
+              <div class="form-field">
+                <label for="studentId">Aluno</label>
+                <select id="studentId" name="studentId" data-student-select required></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2>Conteudo e apoio</h2>
+            <p class="detail-meta">Adicione orientacoes claras para guiar o estudo.</p>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="supportMaterial">Link do material de apoio</label>
+                <input
+                  id="supportMaterial"
+                  name="supportMaterial"
+                  type="url"
+                  placeholder="https://..."
+                  required
+                />
+              </div>
+
+              <div class="form-field form-field--full">
+                <label for="description">Descricao</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Explique o objetivo da atividade e o que o aluno deve aprender."
+                  required
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2>Lista de exemplos</h2>
+            <p class="detail-meta">Cada linha vira uma etapa que o aluno pode marcar como concluida.</p>
+            <div class="form-grid">
+              <div class="form-field form-field--full">
+              <label for="examples">Exemplos</label>
+              <textarea
+                id="examples"
+                name="examples"
+                data-examples-input
+                placeholder="Um exemplo por linha"
+                required
+              ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="button" type="submit" data-submit-label>Salvar atividade</button>
+            <button class="button button--danger" type="button" data-delete-activity hidden>
+              Excluir atividade
+            </button>
+            <p class="status-text" data-form-status></p>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="js/seed.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

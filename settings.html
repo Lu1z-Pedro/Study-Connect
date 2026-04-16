@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuracoes | Study Connect</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="settings">
+    <main class="layout">
+      <header class="topbar">
+        <div>
+          <span class="badge">Configuracoes</span>
+          <h1>Perfil atual</h1>
+        </div>
+        <div class="topbar__actions">
+          <a class="button button--ghost" href="teacher-dashboard.html">Voltar</a>
+          <a class="button button--ghost" href="index.html">Ir para inicio</a>
+        </div>
+      </header>
+
+      <section class="panel" data-settings-details></section>
+
+      <section class="panel">
+        <h2>Ferramentas</h2>
+        <p>Se quiser voltar tudo para o estado inicial de teste, use o botao abaixo.</p>
+        <button class="button" data-reset>Resetar dados</button>
+      </section>
+    </main>
+
+    <script src="js/seed.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel do Professor | Study Connect</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="teacher-dashboard">
+    <main class="layout">
+      <header class="topbar">
+        <div>
+          <span class="badge">Professor</span>
+          <h1>Painel de atividades</h1>
+          <p class="detail-meta" data-teacher-summary></p>
+        </div>
+        <div class="topbar__actions">
+          <a class="button button--primary" href="teacher-create-topic.html">Criar atividade</a>
+          <a class="button button--ghost" href="settings.html">Configuracoes</a>
+          <a class="button button--ghost" href="index.html">Voltar</a>
+        </div>
+      </header>
+
+      <section class="section">
+        <div class="grid" data-teacher-topics></div>
+      </section>
+    </main>
+
+    <script src="js/seed.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
