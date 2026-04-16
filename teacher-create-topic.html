@@ -45,15 +45,20 @@
             <h2>Conteudo e apoio</h2>
             <p class="detail-meta">Adicione orientacoes claras para guiar o estudo.</p>
             <div class="form-grid">
-              <div class="form-field">
-                <label for="supportMaterial">Link do material de apoio</label>
-                <input
-                  id="supportMaterial"
-                  name="supportMaterial"
-                  type="url"
-                  placeholder="https://..."
-                  required
-                />
+              <div class="form-field form-field--full">
+                <label>Links de material de apoio</label>
+                <div data-support-materials-container class="support-materials-container">
+                  <div class="support-material-item">
+                    <input
+                      type="url"
+                      name="supportMaterial[]"
+                      placeholder="https://..."
+                      required
+                    />
+                    <button type="button" class="button button--small button--danger" data-remove-material hidden>Remover</button>
+                  </div>
+                </div>
+                <button type="button" class="button button--small" data-add-material>Adicionar outro link</button>
               </div>
 
               <div class="form-field form-field--full">
@@ -73,14 +78,14 @@
             <p class="detail-meta">Cada linha vira uma etapa que o aluno pode marcar como concluida.</p>
             <div class="form-grid">
               <div class="form-field form-field--full">
-              <label for="examples">Exemplos</label>
-              <textarea
-                id="examples"
-                name="examples"
-                data-examples-input
-                placeholder="Um exemplo por linha"
-                required
-              ></textarea>
+                <label for="examples">Exemplos</label>
+                <textarea
+                  id="examples"
+                  name="examples"
+                  data-examples-input
+                  placeholder="Um exemplo por linha"
+                  required
+                ></textarea>
               </div>
             </div>
           </div>

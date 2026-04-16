@@ -329,12 +329,30 @@ body[data-page="teacher-dashboard"] .section {
   grid-column: 1 / -1;
 }
 
-.form-actions {
+.button--small {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.support-material-item {
   display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 6px;
+}
+
+.support-material-item input {
+  flex: 1;
+}
+
+.support-material-item .button {
+  flex-shrink: 0;
+}
+
+.support-materials-container {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .badge {
@@ -350,26 +368,16 @@ body[data-page="teacher-dashboard"] .section {
   text-transform: uppercase;
 }
 
-.streak-chip,
-.xp-pill {
+.streak-chip {
   display: inline-flex;
   align-items: center;
   padding: 7px 12px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
-}
-
-.streak-chip {
   background: #e8f9ee;
   color: #1f8b44;
   border: 2px solid #b8ebc9;
-}
-
-.xp-pill {
-  background: #e8efff;
-  color: #2a56c6;
-  border: 2px solid #c2d5ff;
 }
 
 .card h3,
@@ -584,7 +592,6 @@ body[data-page="teacher-dashboard"] .section {
   }
 
   .badge,
-  .xp-pill,
   .streak-chip {
     font-size: 11px;
   }

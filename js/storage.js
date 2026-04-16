@@ -101,9 +101,3 @@ function getViewer() {
 function setViewer(viewer) {
   window.localStorage.setItem(VIEWER_KEY, JSON.stringify(viewer));
 }
-
-function resetAppData() {
-  const initialData = cloneSeedData();
-  saveData(initialData);
-  return initialData;
-}

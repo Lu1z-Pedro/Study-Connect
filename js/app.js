@@ -175,7 +175,6 @@ function renderStudentDashboard() {
           <article class="card mission-card">
             <div class="card__header">
               <span class="badge">${escapeHtml(topic.subject)}</span>
-              <span class="xp-pill">+${progress.total * 10} XP</span>
             </div>
             <h3>${escapeHtml(topic.title)}</h3>
             <p>${escapeHtml(topic.description)}</p>
@@ -225,7 +224,6 @@ function renderStudentTopic() {
     <section class="detail-header">
       <div class="card__header">
         <span class="badge">${escapeHtml(topic.subject)}</span>
-        <span class="xp-pill">${progress.completed}/${progress.total} etapas</span>
       </div>
       <h1>${escapeHtml(topic.title)}</h1>
       <p>${escapeHtml(topic.description)}</p>
@@ -237,11 +235,10 @@ function renderStudentTopic() {
       <p class="detail-meta">Aluno: ${escapeHtml(student.name)} | Criado em ${formatDate(
     topic.createdAt
   )}</p>
-      ${isSafeUrl(topic.supportMaterial)
-        ? `<a class="button button--ghost" target="_blank" rel="noreferrer" href="${escapeHtml(
-            topic.supportMaterial
-          )}">Abrir material de apoio</a>`
-        : '<p class="detail-meta">Link de apoio inválido ou ausente.</p>'}
+      ${Array.isArray(topic.supportMaterial) ? topic.supportMaterial : [topic.supportMaterial || ""]
+        .filter(url => url && isSafeUrl(url))
+        .map(url => `<a class="button button--ghost" target="_blank" rel="noreferrer" href="${escapeHtml(url)}">Abrir material de apoio</a>`)
+        .join(" ")}
     </section>
     <section class="detail-body">
       <h2>Exemplos</h2>
@@ -327,7 +324,6 @@ function renderTeacherDashboard() {
         <article class="card mission-card">
           <div class="card__header">
             <span class="badge">${escapeHtml(topic.subject)}</span>
-            <span class="xp-pill">${formatDate(topic.createdAt)}</span>
           </div>
           <h3>${escapeHtml(topic.title)}</h3>
           <p>${escapeHtml(topic.description)}</p>
@@ -367,6 +363,38 @@ function renderTeacherCreateTopic() {
   const modeTitle = document.querySelector("[data-form-mode-title]");
   const submitLabel = document.querySelector("[data-submit-label]");
   const deleteButton = document.querySelector("[data-delete-activity]");
+  const addMaterialButton = document.querySelector("[data-add-material]");
+  const materialsContainer = document.querySelector("[data-support-materials-container]");
+
+  function createMaterialInput(url = "") {
+    const item = document.createElement("div");
+    item.className = "support-material-item";
+    item.innerHTML = `
+      <input type="url" name="supportMaterial[]" placeholder="https://..." value="${escapeHtml(url)}" required />
+      <button type="button" class="button button--small button--danger" data-remove-material>Remover</button>
+    `;
+    return item;
+  }
+
+  function updateRemoveButtons() {
+    const items = materialsContainer.querySelectorAll(".support-material-item");
+    items.forEach((item, index) => {
+      const removeBtn = item.querySelector("[data-remove-material]");
+      removeBtn.hidden = items.length <= 1;
+    });
+  }
+
+  addMaterialButton.addEventListener("click", () => {
+    materialsContainer.appendChild(createMaterialInput());
+    updateRemoveButtons();
+  });
+
+  materialsContainer.addEventListener("click", (event) => {
+    if (event.target.matches("[data-remove-material]")) {
+      event.target.closest(".support-material-item").remove();
+      updateRemoveButtons();
+    }
+  });
 
   studentSelect.innerHTML = data.students
     .map(
@@ -391,15 +419,25 @@ function renderTeacherCreateTopic() {
   if (editingTopic) {
     modeBadge.textContent = "Editando atividade";
     modeTitle.textContent = "Editar atividade";
-    submitLabel.textContent = "Salvar alteracoes";
+    submitLabel.textContent = "Salvar alterações";
     deleteButton.hidden = false;
+    deleteButton.style.display = "inline-block"; // Garantir que apareça
 
     form.elements.title.value = editingTopic.title;
     form.elements.subject.value = editingTopic.subject;
     form.elements.studentId.value = editingTopic.studentId;
-    form.elements.supportMaterial.value = editingTopic.supportMaterial;
     form.elements.description.value = editingTopic.description;
     examplesInput.value = editingTopic.examples.map((example) => example.text).join("\n");
+
+    // Handle support materials
+    const materials = Array.isArray(editingTopic.supportMaterial)
+      ? editingTopic.supportMaterial
+      : [editingTopic.supportMaterial || ""];
+    materialsContainer.innerHTML = "";
+    materials.forEach((url) => {
+      materialsContainer.appendChild(createMaterialInput(url));
+    });
+    updateRemoveButtons();
 
     deleteButton.addEventListener("click", () => {
       const confirmed = window.confirm(
@@ -413,20 +451,32 @@ function renderTeacherCreateTopic() {
       saveData(freshData);
       window.location.href = "teacher-dashboard.html";
     });
+  } else {
+    // Nova atividade
+    modeBadge.textContent = "Nova atividade";
+    modeTitle.textContent = "Criar atividade";
+    submitLabel.textContent = "Criar Atividade";
+    deleteButton.hidden = true;
+    deleteButton.style.display = "none"; // Garantir que não apareça
+
+    // Initialize with one empty field
+    materialsContainer.innerHTML = "";
+    materialsContainer.appendChild(createMaterialInput());
+    updateRemoveButtons();
   }
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
-    const supportMaterial = String(formData.get("supportMaterial") || "").trim();
+    const supportMaterials = formData.getAll("supportMaterial[]").map(url => url.trim()).filter(Boolean);
     const examplesTextList = String(formData.get("examples") || "")
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean);
 
-    if (!isSafeUrl(supportMaterial)) {
-      status.textContent = "Informe um link de apoio válido com http:// ou https://.";
+    if (!supportMaterials.length || !supportMaterials.every(isSafeUrl)) {
+      status.textContent = "Informe pelo menos um link de apoio válido com http:// ou https://.";
       return;
     }
 
@@ -445,7 +495,7 @@ function renderTeacherCreateTopic() {
       subject: String(formData.get("subject") || "").trim(),
       studentId: String(formData.get("studentId") || "").trim(),
       description: String(formData.get("description") || "").trim(),
-      supportMaterial,
+      supportMaterial: supportMaterials,
       createdAt: editingTopic ? editingTopic.createdAt : new Date().toISOString(),
       examples,
     };
@@ -467,6 +517,9 @@ function renderTeacherCreateTopic() {
     }
 
     form.reset();
+    materialsContainer.innerHTML = "";
+    materialsContainer.appendChild(createMaterialInput());
+    updateRemoveButtons();
     status.textContent = "Atividade criada com sucesso.";
   });
 }
@@ -476,7 +529,6 @@ function renderSettingsPage() {
   const viewer = getViewer();
   const details = document.querySelector("[data-settings-details]");
   const teacherSelectContainer = document.querySelector("[data-teacher-select-container]");
-  const resetButton = document.querySelector("[data-reset]");
   const contactButton = document.querySelector("[data-contact]");
 
   if (viewer.role === "teacher") {
@@ -519,13 +571,6 @@ function renderSettingsPage() {
     `;
 
     teacherSelectContainer.innerHTML = "";
-  }
-
-  if (resetButton) {
-    resetButton.addEventListener("click", () => {
-      resetAppData();
-      window.location.reload();
-    });
   }
 
   if (contactButton) {

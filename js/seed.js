@@ -15,8 +15,9 @@ const STUDY_CONNECT_SEED = {
       studentId: "student-1",
       description:
         "Revise como identificar fracoes equivalentes e resolva os exemplos abaixo.",
-      supportMaterial:
-        "https://pt.khanacademy.org/math/arithmetic/fraction-arithmetic",
+      supportMaterial: [
+        "https://pt.khanacademy.org/math/arithmetic/fraction-arithmetic"
+      ],
       createdAt: "2026-04-16T08:00:00.000Z",
       examples: [
         {
@@ -38,8 +39,9 @@ const STUDY_CONNECT_SEED = {
       studentId: "student-2",
       description:
         "Leia o resumo e marque os exemplos conforme concluir os estudos.",
-      supportMaterial:
-        "https://brasilescola.uol.com.br/biologia/sistema-respiratorio.htm",
+      supportMaterial: [
+        "https://brasilescola.uol.com.br/biologia/sistema-respiratorio.htm"
+      ],
       createdAt: "2026-04-15T18:30:00.000Z",
       examples: [
         {
