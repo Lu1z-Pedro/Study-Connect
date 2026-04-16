@@ -15,8 +15,33 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function isSafeUrl(value) {
+  const url = String(value).trim();
+  if (!url) return false;
+
+  try {
+    const parsedUrl = new URL(url, window.location.origin);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function ensureTeacherAccess() {
+  const viewer = getViewer();
+  if (viewer.role !== "teacher") {
+    window.location.href = "index.html";
+    return false;
+  }
+  return true;
+}
+
 function getStudentById(data, studentId) {
   return data.students.find((student) => student.id === studentId) || null;
+}
+
+function getTeacherById(data, teacherId) {
+  return (data.teachers || []).find((teacher) => teacher.id === teacherId) || null;
 }
 
 function getTopicById(data, topicId) {
@@ -25,6 +50,10 @@ function getTopicById(data, topicId) {
 
 function setStudentViewer(studentId) {
   setViewer({ role: "student", studentId });
+}
+
+function setTeacherViewer(teacherId) {
+  setViewer({ role: "teacher", teacherId });
 }
 
 function buildTopicProgress(topic, studentId) {
@@ -71,7 +100,13 @@ function renderIndexPage() {
   });
 
   openTeacherButton.addEventListener("click", () => {
-    setViewer({ role: "teacher" });
+    const viewer = getViewer();
+    const teacherId =
+      viewer.role === "teacher" && viewer.teacherId
+        ? viewer.teacherId
+        : (data.teachers?.[0]?.id || "teacher-1");
+
+    setTeacherViewer(teacherId);
     window.location.href = "teacher-dashboard.html";
   });
 }
@@ -202,9 +237,11 @@ function renderStudentTopic() {
       <p class="detail-meta">Aluno: ${escapeHtml(student.name)} | Criado em ${formatDate(
     topic.createdAt
   )}</p>
-      <a class="button button--ghost" target="_blank" rel="noreferrer" href="${escapeHtml(
-        topic.supportMaterial
-      )}">Abrir material de apoio</a>
+      ${isSafeUrl(topic.supportMaterial)
+        ? `<a class="button button--ghost" target="_blank" rel="noreferrer" href="${escapeHtml(
+            topic.supportMaterial
+          )}">Abrir material de apoio</a>`
+        : '<p class="detail-meta">Link de apoio inválido ou ausente.</p>'}
     </section>
     <section class="detail-body">
       <h2>Exemplos</h2>
@@ -258,11 +295,20 @@ function renderStudentTopic() {
 }
 
 function renderTeacherDashboard() {
+  if (!ensureTeacherAccess()) return;
+
   const data = readData();
+  const viewer = getViewer();
+  const currentTeacher =
+    getTeacherById(data, viewer.teacherId) || data.teachers[0] || null;
   const list = document.querySelector("[data-teacher-topics]");
   const summary = document.querySelector("[data-teacher-summary]");
 
-  summary.textContent = `${data.topics.length} atividades cadastradas para ${data.students.length} alunos`;
+  const teacherLabel = currentTeacher
+    ? `${escapeHtml(currentTeacher.name)} — ${escapeHtml(currentTeacher.subject)}`
+    : "Professor";
+
+  summary.textContent = `${teacherLabel} — ${data.topics.length} atividades cadastradas para ${data.students.length} alunos`;
 
   if (!data.topics.length) {
     list.innerHTML =
@@ -306,6 +352,8 @@ function renderTeacherDashboard() {
 }
 
 function renderTeacherCreateTopic() {
+  if (!ensureTeacherAccess()) return;
+
   const data = readData();
   const params = new URLSearchParams(window.location.search);
   const editingTopicId = params.get("edit");
@@ -371,10 +419,16 @@ function renderTeacherCreateTopic() {
     event.preventDefault();
 
     const formData = new FormData(form);
+    const supportMaterial = String(formData.get("supportMaterial") || "").trim();
     const examplesTextList = String(formData.get("examples") || "")
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean);
+
+    if (!isSafeUrl(supportMaterial)) {
+      status.textContent = "Informe um link de apoio válido com http:// ou https://.";
+      return;
+    }
 
     const freshData = readData();
     const topicId = editingTopic ? editingTopic.id : `topic-${Date.now()}`;
@@ -391,7 +445,7 @@ function renderTeacherCreateTopic() {
       subject: String(formData.get("subject") || "").trim(),
       studentId: String(formData.get("studentId") || "").trim(),
       description: String(formData.get("description") || "").trim(),
-      supportMaterial: String(formData.get("supportMaterial") || "").trim(),
+      supportMaterial,
       createdAt: editingTopic ? editingTopic.createdAt : new Date().toISOString(),
       examples,
     };
@@ -421,14 +475,41 @@ function renderSettingsPage() {
   const data = readData();
   const viewer = getViewer();
   const details = document.querySelector("[data-settings-details]");
+  const teacherSelectContainer = document.querySelector("[data-teacher-select-container]");
   const resetButton = document.querySelector("[data-reset]");
+  const contactButton = document.querySelector("[data-contact]");
 
   if (viewer.role === "teacher") {
+    const currentTeacher = getTeacherById(data, viewer.teacherId) || data.teachers[0];
+
     details.innerHTML = `
-      <h1>${escapeHtml(data.teacher.name)}</h1>
+      <h1>${escapeHtml(currentTeacher.name)}</h1>
       <p>Perfil atual: Professor</p>
-      <p>Materia principal: ${escapeHtml(data.teacher.subject)}</p>
+      <p>Materia principal: ${escapeHtml(currentTeacher.subject)}</p>
     `;
+
+    teacherSelectContainer.innerHTML = `
+      <label for="teacher-profile-select">Escolha seu perfil</label>
+      <select id="teacher-profile-select" data-teacher-select>
+        ${data.teachers
+          .map(
+            (teacher) => `
+              <option value="${escapeHtml(teacher.id)}" ${
+                teacher.id === currentTeacher.id ? "selected" : ""
+              }>
+                ${escapeHtml(teacher.name)} — ${escapeHtml(teacher.subject)}
+              </option>
+            `
+          )
+          .join("")}
+      </select>
+    `;
+
+    const teacherSelect = document.querySelector("[data-teacher-select]");
+    teacherSelect.addEventListener("change", () => {
+      setTeacherViewer(teacherSelect.value);
+      window.location.reload();
+    });
   } else {
     const student = getStudentById(data, viewer.studentId) || data.students[0];
     details.innerHTML = `
@@ -436,12 +517,25 @@ function renderSettingsPage() {
       <p>Perfil atual: Aluno</p>
       <p>Turma: ${escapeHtml(student.grade)}</p>
     `;
+
+    teacherSelectContainer.innerHTML = "";
   }
 
-  resetButton.addEventListener("click", () => {
-    resetAppData();
-    window.location.reload();
-  });
+  if (resetButton) {
+    resetButton.addEventListener("click", () => {
+      resetAppData();
+      window.location.reload();
+    });
+  }
+
+  if (contactButton) {
+    contactButton.addEventListener("click", () => {
+      window.open(
+        'mailto:luizpedro0x@gmail.com?subject=Contato%20Study%20Connect&body=Ol%C3%A1,%20gostaria%20de%20entrar%20em%20contato%20com%20voc%C3%AA.',
+        "_blank"
+      );
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -3,11 +3,10 @@ const STUDY_CONNECT_SEED = {
   students: [
     { id: "student-1", name: "Luiz Pedro", grade: "2o B Administrativo" },
   ],
-  teacher: {
-    id: "teacher-1",
-    name: "Prof. Carla Mendes",
-    subject: "Ciencias",
-  },
+  teachers: [
+    { id: "teacher-1", name: "Prof. Carla Mendes", subject: "Ciencias" },
+    { id: "teacher-2", name: "Prof. Marcos Silva", subject: "Matematica" },
+  ],
   topics: [
     {
       id: "topic-1",
