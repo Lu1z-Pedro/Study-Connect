@@ -19,12 +19,18 @@ function isSafeUrl(value) {
   const url = String(value).trim();
   if (!url) return false;
 
-  try {
-    const parsedUrl = new URL(url, window.location.origin);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
-  } catch {
-    return false;
+  // Permitir URLs que começam com http://, https://, ou são caminhos relativos
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+    } catch {
+      return false;
+    }
   }
+
+  // Para URLs relativas ou outros formatos, permitir se não parecerem perigosos
+  return !url.includes('javascript:') && !url.includes('data:') && !url.includes('vbscript:');
 }
 
 function ensureTeacherAccess() {
@@ -235,10 +241,13 @@ function renderStudentTopic() {
       <p class="detail-meta">Aluno: ${escapeHtml(student.name)} | Criado em ${formatDate(
     topic.createdAt
   )}</p>
-      ${Array.isArray(topic.supportMaterial) ? topic.supportMaterial : [topic.supportMaterial || ""]
-        .filter(url => url && isSafeUrl(url))
-        .map(url => `<a class="button button--ghost" target="_blank" rel="noreferrer" href="${escapeHtml(url)}">Abrir material de apoio</a>`)
-        .join(" ")}
+      ${(() => {
+        const validUrls = (Array.isArray(topic.supportMaterial) ? topic.supportMaterial : [topic.supportMaterial || ""])
+          .filter(url => url && isSafeUrl(url));
+        return validUrls.length > 0
+          ? validUrls.map((url, index) => `<a class="button button--ghost" target="_blank" rel="noreferrer" href="${escapeHtml(url)}" style="display: block; margin-bottom: 8px;">Material ${index + 1}</a>`).join("")
+          : '<p class="detail-meta">Nenhum material de apoio disponível.</p>';
+      })()}
     </section>
     <section class="detail-body">
       <h2>Exemplos</h2>
