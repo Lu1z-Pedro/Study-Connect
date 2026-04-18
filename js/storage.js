@@ -20,10 +20,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ─── Chaves ───────────────────────────────────────────────────────────────────
-const DATA_DOC      = "studyconnect-data";
-const VIEWER_DOC    = "studyconnect-viewer";
-const SEED_SIG_DOC  = "studyconnect-seed-signature";
-const COLLECTION    = "app";
+const DATA_DOC     = "studyconnect-data";
+const SEED_SIG_DOC = "studyconnect-seed-signature";
+const COLLECTION   = "app";
 
 // ─── Helpers internos ────────────────────────────────────────────────────────
 function cloneSeedData() {
@@ -36,11 +35,23 @@ function getSeedSignature() {
 
 async function fsGet(key) {
   const snap = await getDoc(doc(db, COLLECTION, key));
-  return snap.exists() ? snap.data().value : null;
+  if (!snap.exists()) return null;
+  const val = snap.data().value;
+  // compatibilidade com documentos antigos salvos como string JSON
+  if (typeof val === "string") {
+    try { return JSON.parse(val); } catch { return val; }
+  }
+  return val;
 }
 
 async function fsSet(key, value) {
-  await setDoc(doc(db, COLLECTION, key), { value });
+  // salva objeto nativo no Firestore (legível no console)
+  // se for string pura (ex: seed signature), salva como está
+  let toStore = value;
+  if (typeof value === "string") {
+    try { toStore = JSON.parse(value); } catch { toStore = value; }
+  }
+  await setDoc(doc(db, COLLECTION, key), { value: toStore });
 }
 
 // ─── Merge seed com dados salvos (mantém progresso do aluno) ─────────────────
@@ -86,11 +97,6 @@ function syncStoredDataWithSeed(storedData) {
 
 // ─── API pública ─────────────────────────────────────────────────────────────
 
-/**
- * Lê todos os dados do app.
- * Se for a primeira vez, salva o seed no Firestore.
- * Se o seed mudou, faz merge preservando o progresso do aluno.
- */
 export async function readData() {
   const currentSeedSignature = getSeedSignature();
 
@@ -107,8 +113,11 @@ export async function readData() {
 
   try {
     const parsedData = typeof raw === "string" ? JSON.parse(raw) : raw;
+    const savedSig = typeof savedSeedSignature === "object"
+      ? JSON.stringify(savedSeedSignature)
+      : savedSeedSignature;
 
-    if (savedSeedSignature !== currentSeedSignature) {
+    if (savedSig !== currentSeedSignature) {
       const syncedData = syncStoredDataWithSeed(parsedData);
       await saveData(syncedData);
       return syncedData;
@@ -122,21 +131,13 @@ export async function readData() {
   }
 }
 
-/**
- * Salva todos os dados do app no Firestore.
- */
 export async function saveData(data) {
   await Promise.all([
-    fsSet(DATA_DOC, JSON.stringify(data)),
+    fsSet(DATA_DOC, data),
     fsSet(SEED_SIG_DOC, getSeedSignature()),
   ]);
 }
 
-/**
- * Retorna o viewer atual (role + studentId).
- * Usa localStorage apenas para o viewer — é intencional,
- * pois cada pessoa escolhe sua própria visão no dispositivo dela.
- */
 export function getViewer() {
   const raw = window.localStorage.getItem("studyconnect-viewer");
   if (!raw) return { role: "student", studentId: "student-1" };
@@ -147,9 +148,6 @@ export function getViewer() {
   }
 }
 
-/**
- * Salva o viewer atual no localStorage (local por dispositivo, intencional).
- */
 export function setViewer(viewer) {
   window.localStorage.setItem("studyconnect-viewer", JSON.stringify(viewer));
 }
