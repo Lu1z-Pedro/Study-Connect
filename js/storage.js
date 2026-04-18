@@ -91,7 +91,7 @@ function syncStoredDataWithSeed(storedData) {
  * Se for a primeira vez, salva o seed no Firestore.
  * Se o seed mudou, faz merge preservando o progresso do aluno.
  */
-async function readData() {
+export async function readData() {
   const currentSeedSignature = getSeedSignature();
 
   const [raw, savedSeedSignature] = await Promise.all([
@@ -125,7 +125,7 @@ async function readData() {
 /**
  * Salva todos os dados do app no Firestore.
  */
-async function saveData(data) {
+export async function saveData(data) {
   await Promise.all([
     fsSet(DATA_DOC, JSON.stringify(data)),
     fsSet(SEED_SIG_DOC, getSeedSignature()),
@@ -137,7 +137,7 @@ async function saveData(data) {
  * Usa localStorage apenas para o viewer — é intencional,
  * pois cada pessoa escolhe sua própria visão no dispositivo dela.
  */
-function getViewer() {
+export function getViewer() {
   const raw = window.localStorage.getItem("studyconnect-viewer");
   if (!raw) return { role: "student", studentId: "student-1" };
   try {
@@ -150,6 +150,6 @@ function getViewer() {
 /**
  * Salva o viewer atual no localStorage (local por dispositivo, intencional).
  */
-function setViewer(viewer) {
+export function setViewer(viewer) {
   window.localStorage.setItem("studyconnect-viewer", JSON.stringify(viewer));
 }

@@ -1,3 +1,5 @@
+import { readData, saveData, getViewer, setViewer } from "./storage.js";
+
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -79,8 +81,8 @@ function getSubjects(data) {
   return [...new Set(data.topics.map((topic) => topic.subject))];
 }
 
-function renderIndexPage() {
-  const data = readData();
+async function renderIndexPage() {
+  const data = await readData();
   const studentOptions = data.students
     .map(
       (student) => `
@@ -117,8 +119,8 @@ function renderIndexPage() {
   });
 }
 
-function renderStudentDashboard() {
-  const data = readData();
+async function renderStudentDashboard() {
+  const data = await readData();
   const viewer = getViewer();
   const currentStudent =
     getStudentById(data, viewer.studentId) || data.students[0] || null;
@@ -209,10 +211,10 @@ function renderStudentDashboard() {
   updateTopicList();
 }
 
-function renderStudentTopic() {
+async function renderStudentTopic() {
   const params = new URLSearchParams(window.location.search);
   const topicId = params.get("topic");
-  const data = readData();
+  const data = await readData();
   const viewer = getViewer();
   const topic = getTopicById(data, topicId);
   const student = getStudentById(data, viewer.studentId) || data.students[0];
@@ -273,11 +275,11 @@ function renderStudentTopic() {
     </section>
   `;
 
-  content.addEventListener("change", (event) => {
+  content.addEventListener("change", async (event) => {
     const checkbox = event.target.closest("[data-example-id]");
     if (!checkbox) return;
 
-    const freshData = readData();
+    const freshData = await readData();
     const freshTopic = getTopicById(freshData, topicId);
     const example = freshTopic.examples.find(
       (item) => item.id === checkbox.dataset.exampleId
@@ -295,15 +297,15 @@ function renderStudentTopic() {
       );
     }
 
-    saveData(freshData);
+    await saveData(freshData);
     window.location.reload();
   });
 }
 
-function renderTeacherDashboard() {
+async function renderTeacherDashboard() {
   if (!ensureTeacherAccess()) return;
 
-  const data = readData();
+  const data = await readData();
   const viewer = getViewer();
   const currentTeacher =
     getTeacherById(data, viewer.teacherId) || data.teachers[0] || null;
@@ -356,10 +358,10 @@ function renderTeacherDashboard() {
     .join("");
 }
 
-function renderTeacherCreateTopic() {
+async function renderTeacherCreateTopic() {
   if (!ensureTeacherAccess()) return;
 
-  const data = readData();
+  const data = await readData();
   const params = new URLSearchParams(window.location.search);
   const editingTopicId = params.get("edit");
   const editingTopic = editingTopicId ? getTopicById(data, editingTopicId) : null;
@@ -448,16 +450,16 @@ function renderTeacherCreateTopic() {
     });
     updateRemoveButtons();
 
-    deleteButton.addEventListener("click", () => {
+    deleteButton.addEventListener("click", async () => {
       const confirmed = window.confirm(
         "Tem certeza que deseja excluir esta atividade? Esta acao nao pode ser desfeita."
       );
 
       if (!confirmed) return;
 
-      const freshData = readData();
+      const freshData = await readData();
       freshData.topics = freshData.topics.filter((topic) => topic.id !== editingTopic.id);
-      saveData(freshData);
+      await saveData(freshData);
       window.location.href = "teacher-dashboard.html";
     });
   } else {
@@ -474,7 +476,7 @@ function renderTeacherCreateTopic() {
     updateRemoveButtons();
   }
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
@@ -489,7 +491,7 @@ function renderTeacherCreateTopic() {
       return;
     }
 
-    const freshData = readData();
+    const freshData = await readData();
     const topicId = editingTopic ? editingTopic.id : `topic-${Date.now()}`;
     const oldExamples = editingTopic ? editingTopic.examples : [];
     const examples = examplesTextList.map((text, index) => ({
@@ -518,7 +520,7 @@ function renderTeacherCreateTopic() {
       freshData.topics.push(nextTopic);
     }
 
-    saveData(freshData);
+    await saveData(freshData);
 
     if (editingTopic) {
       window.location.href = "teacher-dashboard.html";
@@ -533,8 +535,8 @@ function renderTeacherCreateTopic() {
   });
 }
 
-function renderSettingsPage() {
-  const data = readData();
+async function renderSettingsPage() {
+  const data = await readData();
   const viewer = getViewer();
   const details = document.querySelector("[data-settings-details]");
   const teacherSelectContainer = document.querySelector("[data-teacher-select-container]");
@@ -592,13 +594,13 @@ function renderSettingsPage() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const page = document.body.dataset.page;
 
-  if (page === "index") renderIndexPage();
-  if (page === "student-dashboard") renderStudentDashboard();
-  if (page === "student-topic") renderStudentTopic();
-  if (page === "teacher-dashboard") renderTeacherDashboard();
-  if (page === "teacher-create-topic") renderTeacherCreateTopic();
-  if (page === "settings") renderSettingsPage();
+  if (page === "index") await renderIndexPage();
+  if (page === "student-dashboard") await renderStudentDashboard();
+  if (page === "student-topic") await renderStudentTopic();
+  if (page === "teacher-dashboard") await renderTeacherDashboard();
+  if (page === "teacher-create-topic") await renderTeacherCreateTopic();
+  if (page === "settings") await renderSettingsPage();
 });
